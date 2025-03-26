@@ -1,8 +1,17 @@
 import { useEffect, useState } from "react";
 import { NavigateFunction, useNavigate } from "react-router-dom";
+import { FormData } from "../types/types";
 
 const Registration = () => {
   const [loaded, setLoaded] = useState<boolean>(false);
+  const [formData, setFormData] = useState<FormData>({
+    fullName: "",
+    address: "",
+    meterNumber: "", // Use default values matching the type
+    phoneNumber: "",
+    complaintDetails: "",
+  });
+
   const navigate: NavigateFunction = useNavigate();
 
   useEffect(() => {
@@ -19,6 +28,14 @@ const Registration = () => {
     }
   }, [loaded]);
 
+  function submitComplaints(e: any) {
+    e.preventDefault();
+    console.log(formData);
+
+    try {
+    } catch (error) {}
+  }
+
   return (
     <div className="register-container">
       <div className="glow"></div>
@@ -28,7 +45,7 @@ const Registration = () => {
           <p>Create your account to submit complaints</p>
         </div>
 
-        <form>
+        <form onSubmit={submitComplaints}>
           <div className="form-group">
             <label className="label" htmlFor="fullName">
               Full Name
@@ -38,6 +55,10 @@ const Registration = () => {
               id="fullName"
               className="inputField"
               placeholder="Enter your full name"
+              value={formData.fullName}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, fullName: e.target.value }))
+              }
             />
           </div>
 
@@ -50,6 +71,10 @@ const Registration = () => {
               id="address"
               className="inputField"
               placeholder="Enter Address"
+              value={formData.address}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, address: e.target.value }))
+              }
             />
           </div>
 
@@ -62,6 +87,13 @@ const Registration = () => {
               id="meter-number"
               className="inputField"
               placeholder="e.g: 0123456789..."
+              value={formData.meterNumber}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  meterNumber: e.target.value,
+                }))
+              }
             />
           </div>
 
@@ -74,6 +106,13 @@ const Registration = () => {
               id="phone"
               className="inputField"
               placeholder="e.g: 08121061727..."
+              value={formData.phoneNumber}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  phoneNumber: e.target.value,
+                }))
+              }
             />
           </div>
 
@@ -85,15 +124,26 @@ const Registration = () => {
               id="complain"
               className="inputField"
               placeholder="Add your complain..."
+              value={formData.complaintDetails}
+              onChange={(e) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  complaintDetails: e.target.value,
+                }))
+              }
             />
           </div>
 
           <button type="submit" className="btn btn-primary mt-2">
-            Register Account
+            Register Complain
           </button>
         </form>
       </div>
-      <div className="live-chat-btn" onClick={() => navigate("/chat")}>
+      <div
+        className="live-chat-btn"
+        onClick={() => navigate("/chat")}
+        onMouseEnter={() => setLoaded(true)}
+      >
         <svg
           width="24"
           height="24"
