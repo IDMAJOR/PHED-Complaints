@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FiMessageSquare,
   FiUser,
@@ -6,29 +6,19 @@ import {
   FiPhone,
   FiAlertCircle,
 } from "react-icons/fi";
+import { Chat, Complaint } from "../types/types";
 
-type Complaint = {
-  id: number;
-  fullName: string;
-  address: string;
-  meterNumber: string;
-  phoneNumber: string;
-  complaint: string;
-  status: "Pending" | "In Progress" | "Resolved";
-  date: Date;
-};
+import { io } from "socket.io-client";
+import ChatItem from "../components/ChatItem";
+import MessageList from "../components/MessageList";
 
-type Chat = {
-  id: number;
-  userId: number;
-  userName: string;
-  lastMessage: string;
-  unreadCount: number;
-  lastActivity: Date;
-};
+const socket = io("http://localhost:5040");
 
+const roomId = 123456;
+const userId = 132435;
 export default function AdminDash() {
   const [activeTab, setActiveTab] = useState<"chats" | "complaints">("chats");
+  const [userMessage, setUserMessage] = useState<string[]>([]);
 
   // Sample complaints data
   const [complaints, setComplaints] = useState<Complaint[]>([
@@ -68,27 +58,30 @@ export default function AdminDash() {
   const [chats, setChats] = useState<Chat[]>([
     {
       id: 1,
-      userId: 101,
+      roomId: 101,
       userName: "John Doe",
       lastMessage: "Hello, I have a billing question...",
       unreadCount: 2,
       lastActivity: new Date(Date.now() - 1800000),
+      sender: "user",
     },
     {
       id: 2,
-      userId: 102,
+      roomId: 102,
       userName: "Jane Smith",
       lastMessage: "My power has been out since...",
       unreadCount: 0,
       lastActivity: new Date(Date.now() - 3600000),
+      sender: "user",
     },
     {
       id: 3,
-      userId: 103,
+      roomId: 103,
       userName: "Mike Johnson",
       lastMessage: "Thanks for resolving my issue!",
       unreadCount: 0,
       lastActivity: new Date(Date.now() - 86400000),
+      sender: "user",
     },
   ]);
 
@@ -96,6 +89,13 @@ export default function AdminDash() {
   const [selectedComplaint, setSelectedComplaint] = useState<number | null>(
     null
   );
+
+  // const [activeConversations, setActiveConversations] = useState<{
+  //   [roomId: number]: {
+  //     chatInfo: Chat;
+  //     messages: any[];
+  //   };
+  // }>({});
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-NG", {
@@ -123,6 +123,48 @@ export default function AdminDash() {
     );
   };
 
+  useEffect(() => {
+    socket.emit("join_room", { roomId, userId });
+
+    socket.on("online", (data) => {
+      console.log(data);
+    });
+
+    // Remove old listener before adding a new one
+    socket.off("receiveMessage").on("receiveMessage", (data) => {
+      console.log("New message:", data);
+
+      setChats((prevChats) => {
+        const chatExists = prevChats.find(
+          (chat) => chat.roomId === data.roomId
+        );
+
+        if (chatExists) {
+          // Update the existing chat
+          return prevChats.map((chat) =>
+            chat.roomId === data.roomId
+              ? {
+                  ...chat,
+                  lastMessage: data.lastMessage,
+                  lastActivity: new Date(data.lastActivity),
+                }
+              : chat
+          );
+        } else {
+          // Add a new chat if it doesn't exist
+          return [
+            ...prevChats,
+            { ...data, lastActivity: new Date(data.lastActivity) },
+          ];
+        }
+      });
+    });
+
+    return () => {
+      socket.off("receiveMessage"); // Cleanup on unmount
+    };
+  }, [socket]);
+
   return (
     <div className="admin-dashboard">
       <div className="dashboard-header">
@@ -148,58 +190,24 @@ export default function AdminDash() {
           <div className="chats-container">
             <div className="chat-list">
               {chats.map((chat) => (
-                <div
-                  key={chat.id}
-                  className={`chat-item ${
-                    selectedChat === chat.id ? "active" : ""
-                  }`}
-                  onClick={() => setSelectedChat(chat.id)}
-                >
-                  <div className="chat-info">
-                    <div className="chat-header">
-                      <div className="profile">
-                        <div className="chat-avatar">
-                          <FiUser />
-                        </div>
-                        <h4>{chat.userName}</h4>
-                      </div>
-                      <span className="chat-time">
-                        {formatTime(chat.lastActivity)}
-                      </span>
-                    </div>
-                    <div className="message-check">
-                      <p className="chat-preview">{chat.lastMessage}</p>
-                      {chat.unreadCount > 0 && (
-                        <span className="unread-badge">{chat.unreadCount}</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <ChatItem
+                  chat={chat}
+                  selectedChat={selectedChat}
+                  setSelectedChat={setSelectedChat}
+                  formatTime={formatTime}
+                />
               ))}
             </div>
-
-            <div className="chat-detail">
-              {selectedChat ? (
-                <div className="active-chat">
-                  <h3>
-                    Chat with{" "}
-                    {chats.find((c) => c.id === selectedChat)?.userName}
-                  </h3>
-                  {/* Chat messages would go here */}
-                  <div className="chat-messages">
-                    <p>Chat interface would be displayed here</p>
-                  </div>
-                  <div className="chat-input">
-                    <input type="text" placeholder="Type your message..." />
-                    <button>Send</button>
-                  </div>
-                </div>
-              ) : (
-                <div className="no-chat-selected">
-                  <p>Select a chat from the list</p>
-                </div>
-              )}
-            </div>
+            {selectedChat !== null ? (
+              <MessageList
+                selectedChat={chats.find((chat) => chat.id === selectedChat)}
+                formatTime={formatTime}
+              />
+            ) : (
+              <div>
+                <p>Please open a chat to start messaging</p>
+              </div>
+            )}
           </div>
         ) : (
           <div className="complaints-container">
@@ -298,6 +306,11 @@ export default function AdminDash() {
                             <FiAlertCircle /> Complaint Details
                           </label>
                           <p>{complaint.complaint}</p>
+                        </div>
+
+                        <div className="complaint-field">
+                          <label>Ticket ID</label>
+                          <p>{"40320250099"}</p>
                         </div>
 
                         <div className="complaint-field">

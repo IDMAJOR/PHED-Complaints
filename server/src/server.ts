@@ -1,13 +1,22 @@
 import express, { Express, Request, Response } from "express";
 import dotenv from "dotenv";
 import cors from "cors";
-dotenv.config();
-
+import http from "http";
+import initializeSocket from "./socket";
 import connectDB from "./database/connectDB";
 import complaintRoute from "./routes/complaintRoutes";
+import chatRoute from "./routes/chatRoutes";
+
+dotenv.config();
 
 const app: Express = express();
 const port = process.env.PORT || 2000;
+
+// Create HTTP server
+const server = http.createServer(app);
+
+// Initialize Socket.io
+const io = initializeSocket(server);
 
 app.use(cors());
 app.use(express.json());
@@ -17,8 +26,10 @@ app.get("/", (req: Request, res: Response) => {
 });
 
 app.use("/api/v1/complaints", complaintRoute);
+app.use("/api/v1/chats", chatRoute);
 
-app.listen(port, () => {
+// Start the server
+server.listen(port, () => {
   connectDB();
   console.log(`Server running on http://localhost:${port}`);
 });

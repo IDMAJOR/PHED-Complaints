@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { NavigateFunction, useNavigate } from "react-router-dom";
 import { FormData } from "../types/types";
+import { toast } from "react-toastify";
 
 const Registration = () => {
   const [loaded, setLoaded] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [formData, setFormData] = useState<FormData>({
     fullName: "",
     address: "",
@@ -28,12 +30,45 @@ const Registration = () => {
     }
   }, [loaded]);
 
-  function submitComplaints(e: any) {
+  async function submitComplaints(e: any) {
     e.preventDefault();
     console.log(formData);
+    setLoading(true);
 
     try {
-    } catch (error) {}
+      const response = await fetch(
+        "http://localhost:5040/api/v1/complaints/create",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.message === "All fields are required!") {
+          toast.warn(data.message);
+        }
+        toast.error(data.message);
+      }
+
+      if (response.ok) {
+        setFormData({
+          fullName: "",
+          address: "",
+          meterNumber: "",
+          phoneNumber: "",
+          complaintDetails: "",
+        });
+        toast.success(data.message);
+      }
+    } catch (error: any) {
+      toast.error("Please check your internet connection and try again");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -134,8 +169,12 @@ const Registration = () => {
             />
           </div>
 
-          <button type="submit" className="btn btn-primary mt-2">
-            Register Complain
+          <button
+            type="submit"
+            className="btn btn-primary mt-2"
+            disabled={loading}
+          >
+            {loading ? "sending..." : "Register Complain"}
           </button>
         </form>
       </div>

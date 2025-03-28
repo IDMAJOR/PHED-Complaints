@@ -1,78 +1,98 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FiSend, FiUser } from "react-icons/fi";
 import { BsCheck2All } from "react-icons/bs";
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:5040");
 
 type Message = {
   id: number;
-  text: string;
+  message: string;
+  roomId: number;
   sender: "user" | "agent";
   timestamp: Date;
   status: "sent" | "delivered" | "read";
 };
 
+const roomId = 123456;
+const userId = 654321;
+
 export default function Chat() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      text: "Hello! How can I help you today?",
+      roomId: roomId,
+      message: "Hello! How can I help you today?",
       sender: "agent",
       timestamp: new Date(Date.now() - 3600000),
       status: "read",
     },
     {
       id: 2,
-      text: "I have a question about my bill",
+      roomId: roomId,
+      message: "I have a question about my bill",
       sender: "user",
       timestamp: new Date(Date.now() - 1800000),
       status: "read",
     },
     {
       id: 3,
-      text: "Sure, I can help with that. Could you provide your account number?",
+      roomId: roomId,
+      message:
+        "Sure, I can help with that. Could you provide your account number?",
       sender: "agent",
       timestamp: new Date(Date.now() - 1200000),
       status: "read",
     },
   ]);
-
   const [newMessage, setNewMessage] = useState("");
+  const [onlineUsers, setOnlineUsers] = useState<number[] | null>(null);
 
-  const handleSend = () => {
+  useEffect(() => {
+    socket.emit("join_room", { roomId, userId });
+
+    socket.on("online", (data) => {
+      console.log(data);
+      setOnlineUsers(data);
+    });
+  }, [socket]);
+
+  const handleSend = async () => {
     if (newMessage.trim() === "") return;
 
     const message: Message = {
       id: messages.length + 1,
-      text: newMessage,
+      roomId: roomId,
+      message: newMessage,
       sender: "user",
       timestamp: new Date(),
       status: "sent",
     };
 
+    await socket.emit("send_message", message);
+
     setMessages([...messages, message]);
     setNewMessage("");
-
-    // Simulate agent reply after 1-2 seconds
-    setTimeout(() => {
-      const reply: Message = {
-        id: messages.length + 2,
-        text: "Thanks for your message. In the next 30sec a staff will get to you, just leave the tab open for sometime...",
-        sender: "agent",
-        timestamp: new Date(),
-        status: "delivered",
-      };
-      setMessages((prev) => [...prev, reply]);
-    }, 1000 + Math.random() * 1000);
   };
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
+  // const sendMessage = {
+  //   roomId: roomId,
+  //   sender: "user",
+  //   message: newMessage,
+  // };
+  console.log(onlineUsers);
+
   return (
     <div className="chat-container">
       <div className="chat-header">
         <h3>PHED Support</h3>
-        <div className="chat-status">Online</div>
+        <div className="chat-status">
+          {onlineUsers?.includes(132435) ? "Online" : "Offline"}
+        </div>
       </div>
 
       <div className="chat-messages">
@@ -87,7 +107,7 @@ export default function Chat() {
             </div>
 
             <div className="message-content">
-              <div className="message-text">{message.text}</div>
+              <div className="message-text">{message.message}</div>
 
               <div className="message-meta">
                 <span className="message-time">
