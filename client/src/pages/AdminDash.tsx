@@ -18,7 +18,7 @@ const roomId = 123456;
 const userId = 132435;
 export default function AdminDash() {
   const [activeTab, setActiveTab] = useState<"chats" | "complaints">("chats");
-  const [userMessage, setUserMessage] = useState<string[]>([]);
+  // const [userMessage, setUserMessage] = useState<string[]>([]);
 
   // Sample complaints data
   const [complaints, setComplaints] = useState<Complaint[]>([
