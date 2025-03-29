@@ -18,7 +18,7 @@ const roomId = 123456;
 const userId = 132435;
 export default function AdminDash() {
   const [activeTab, setActiveTab] = useState<"chats" | "complaints">("chats");
-  // const [userMessage, setUserMessage] = useState<string[]>([]);
+  const [userMessage, setUserMessage] = useState<string[]>([]);
 
   // Sample complaints data
   const [complaints, setComplaints] = useState<Complaint[]>([
@@ -204,8 +204,13 @@ export default function AdminDash() {
                 formatTime={formatTime}
               />
             ) : (
-              <div>
-                <p>Please open a chat to start messaging</p>
+              <div
+                className="no-chat-selected"
+                style={{
+                  margin: " 0 auto",
+                }}
+              >
+                <p>Open a chat to start messaging</p>{" "}
               </div>
             )}
           </div>

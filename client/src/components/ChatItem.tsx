@@ -1,4 +1,5 @@
 import { Chat } from "../types/types";
+import { FiUser } from "react-icons/fi";
 
 interface ChatItemProps {
   chat: Chat;
@@ -15,12 +16,27 @@ export default function ChatItem({
 }: ChatItemProps) {
   return (
     <div
+      key={chat.id}
       className={`chat-item ${selectedChat === chat.id ? "active" : ""}`}
       onClick={() => setSelectedChat(chat.id)}
     >
-      <h4>{chat.userName}</h4>
-      <p>{chat.lastMessage}</p>
-      <span>{formatTime(chat.lastActivity)}</span>
+      <div className="chat-info">
+        <div className="chat-header">
+          <div className="profile">
+            <div className="chat-avatar">
+              <FiUser />
+            </div>
+            <h4>{chat.userName}</h4>
+          </div>
+          <span className="chat-time">{formatTime(chat.lastActivity)}</span>
+        </div>
+        <div className="message-check">
+          <p className="chat-preview">{chat.lastMessage}</p>
+          {chat.unreadCount > 0 && (
+            <span className="unread-badge">{chat.unreadCount}</span>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
