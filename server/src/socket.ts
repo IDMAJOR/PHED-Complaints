@@ -11,7 +11,6 @@ export default function initializeSocket(server: HttpServer) {
   });
 
   const rooms: any = {};
-  const userName = "Joseph Melody";
 
   io.on("connection", (socket) => {
     socket.on("join_room", ({ roomId, userId }) => {
@@ -37,10 +36,12 @@ export default function initializeSocket(server: HttpServer) {
         console.log(`User ${userId} disconnected from room ${roomId}`);
 
         // Remove user from room
-        rooms[roomId] = rooms[roomId].filter((id: any) => id !== userId);
+        if (rooms[roomId]) {
+          rooms[roomId] = rooms[roomId].filter((id: any) => id !== userId);
+        }
 
         // If room is empty, delete it
-        if (rooms[roomId].length === 0) {
+        if (rooms[roomId] && rooms[roomId].length === 0) {
           delete rooms[roomId];
         }
 
@@ -51,17 +52,20 @@ export default function initializeSocket(server: HttpServer) {
       });
     });
 
-    socket.on("send_message", ({ roomId, sender, message }) => {
-      console.log({ roomId, sender, message });
+    socket.on("send_message", ({ userName, roomId, sender, message }) => {
+      console.log({ userName, roomId, sender, message });
 
       io.to(roomId).emit("receiveMessage", {
-        id: Math.random(),
-        userName,
         roomId,
-        sender,
-        lastMessage: message,
-        unreadCount: 2,
-        lastActivity: new Date(Date.now() - 1800000),
+        userName,
+        messages: {
+          id: Date.now(), // More reliable unique ID
+          text: message,
+          sender,
+          status: "sent",
+        },
+        unreadCount: rooms[roomId] ? rooms[roomId].size - 1 : 0, // Exclude sender from unread count
+        lastActivity: new Date(),
       });
     });
   });

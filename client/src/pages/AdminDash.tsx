@@ -54,34 +54,146 @@ export default function AdminDash() {
     },
   ]);
 
+  const [newMessage, setNewMessage] = useState("");
+
   // Sample chats data
   const [chats, setChats] = useState<Chat[]>([
     {
-      id: 1,
       roomId: 101,
-      userName: "John Doe",
-      lastMessage: "Hello, I have a billing question...",
-      unreadCount: 2,
-      lastActivity: new Date(Date.now() - 1800000),
-      sender: "user",
+      userName: "Alex Carter",
+      messages: [
+        {
+          id: 1,
+          text: "Hey, is the React course still available?",
+          sender: "user",
+          status: "sent",
+        },
+        {
+          id: 2,
+          text: "Yes! Do you want a discount code?",
+          sender: "admin",
+          status: "delivered",
+        },
+        {
+          id: 3,
+          text: "That would be great! How much discount?",
+          sender: "user",
+          status: "sent",
+        },
+        {
+          id: 4,
+          text: "You can get 20% off if you sign up today.",
+          sender: "admin",
+          status: "read",
+        },
+      ],
+      unreadCount: 2, // User hasn't read recent messages
+      lastActivity: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
     },
     {
-      id: 2,
       roomId: 102,
-      userName: "Jane Smith",
-      lastMessage: "My power has been out since...",
-      unreadCount: 0,
-      lastActivity: new Date(Date.now() - 3600000),
-      sender: "user",
+      userName: "Sophia Lee",
+      messages: [
+        {
+          id: 1,
+          text: "Can we reschedule our meeting to Friday?",
+          sender: "user",
+          status: "delivered",
+        },
+        {
+          id: 2,
+          text: "Let me check my calendar. One moment.",
+          sender: "admin",
+          status: "read",
+        },
+        {
+          id: 3,
+          text: "Sure, Friday at 3 PM works!",
+          sender: "admin",
+          status: "read",
+        },
+        { id: 4, text: "Perfect, thanks!", sender: "user", status: "sent" },
+      ],
+      unreadCount: 0, // All messages read
+      lastActivity: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
     },
     {
-      id: 3,
       roomId: 103,
-      userName: "Mike Johnson",
-      lastMessage: "Thanks for resolving my issue!",
-      unreadCount: 0,
-      lastActivity: new Date(Date.now() - 86400000),
-      sender: "user",
+      userName: "Derek Owens",
+      messages: [
+        {
+          id: 1,
+          text: "Hey, are you coming to the party tonight?",
+          sender: "user",
+          status: "sent",
+        },
+        {
+          id: 2,
+          text: "Yeah! What time does it start?",
+          sender: "admin",
+          status: "delivered",
+        },
+        {
+          id: 3,
+          text: "Around 8 PM. Bring some snacks!",
+          sender: "user",
+          status: "read",
+        },
+      ],
+      unreadCount: 1, // One unread message
+      lastActivity: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+    },
+    {
+      roomId: 104,
+      userName: "Olivia Martin",
+      messages: [
+        {
+          id: 1,
+          text: "Do you have any updates on my order?",
+          sender: "user",
+          status: "sent",
+        },
+        {
+          id: 2,
+          text: "Yes! Your order will be delivered by tomorrow.",
+          sender: "admin",
+          status: "delivered",
+        },
+        {
+          id: 3,
+          text: "Great, thanks for the quick response!",
+          sender: "user",
+          status: "read",
+        },
+      ],
+      unreadCount: 0, // Fully read conversation
+      lastActivity: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
+    },
+    {
+      roomId: 105,
+      userName: "Nathan Rivera",
+      messages: [
+        {
+          id: 1,
+          text: "Hey bro, wanna game tonight?",
+          sender: "user",
+          status: "sent",
+        },
+        {
+          id: 2,
+          text: "For sure! Which game are we playing?",
+          sender: "admin",
+          status: "delivered",
+        },
+        {
+          id: 3,
+          text: "Maybe FIFA or COD. Up to you!",
+          sender: "user",
+          status: "read",
+        },
+      ],
+      unreadCount: 3, // More unread messages
+      lastActivity: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
     },
   ]);
 
@@ -130,7 +242,7 @@ export default function AdminDash() {
       console.log(data);
     });
 
-    // Remove old listener before adding a new one
+    // Ensure old listener is removed before adding a new one
     socket.off("receiveMessage").on("receiveMessage", (data) => {
       console.log("New message:", data);
 
@@ -140,13 +252,14 @@ export default function AdminDash() {
         );
 
         if (chatExists) {
-          // Update the existing chat
+          // Update the existing chat and append the new message
           return prevChats.map((chat) =>
             chat.roomId === data.roomId
               ? {
                   ...chat,
-                  lastMessage: data.lastMessage,
-                  lastActivity: new Date(data.lastActivity),
+                  messages: [...chat.messages, data.messages], // Append new message
+                  unreadCount: data.unreadCount, // Update unread count
+                  lastActivity: new Date(data.lastActivity), // Ensure valid Date object
                 }
               : chat
           );
@@ -154,7 +267,11 @@ export default function AdminDash() {
           // Add a new chat if it doesn't exist
           return [
             ...prevChats,
-            { ...data, lastActivity: new Date(data.lastActivity) },
+            {
+              ...data,
+              messages: [data.messages], // Initialize messages array with first message
+              lastActivity: new Date(data.lastActivity),
+            },
           ];
         }
       });
@@ -164,6 +281,35 @@ export default function AdminDash() {
       socket.off("receiveMessage"); // Cleanup on unmount
     };
   }, [socket]);
+
+  type Message = {
+    id: number;
+    message: string;
+    roomId: number;
+    sender: "user" | "admin";
+    timestamp: Date;
+    status: "sent" | "delivered" | "read";
+  };
+
+  const handleSend = async () => {
+    if (newMessage.trim() === "") return;
+
+    const newMessageObj: Message = {
+      id: Date.now(), // Temporary unique ID
+      roomId: roomId,
+      message: newMessage,
+      sender: "admin",
+      timestamp: new Date(),
+      status: "sent",
+    };
+
+    // Emit message to the server
+    await socket.emit("send_message", newMessageObj);
+
+    // Update chats properly
+    // Clear input
+    setNewMessage("");
+  };
 
   return (
     <div className="admin-dashboard">
@@ -200,8 +346,13 @@ export default function AdminDash() {
             </div>
             {selectedChat !== null ? (
               <MessageList
-                selectedChat={chats.find((chat) => chat.id === selectedChat)}
+                selectedChat={chats.find(
+                  (chat) => chat.roomId === selectedChat
+                )}
                 formatTime={formatTime}
+                handleSend={handleSend}
+                newMessage={newMessage}
+                setNewMessage={setNewMessage}
               />
             ) : (
               <div

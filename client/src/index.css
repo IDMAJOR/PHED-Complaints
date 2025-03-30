@@ -321,6 +321,11 @@ h4 {
   flex-direction: row-reverse;
 }
 
+.message.agent2 {
+  margin-left: auto;
+  flex-direction: row-reverse;
+}
+
 .message-avatar {
   margin: 0 0.5rem;
 }
@@ -356,6 +361,17 @@ h4 {
 .agent .message-content {
   background-color: #2d2d2d;
   border-top-left-radius: 0;
+}
+
+.user2 .message-content {
+  background-color: #2d2d2d;
+  color: white;
+  border-top-left-radius: 0;
+}
+
+.agent2 .message-content {
+  background-color: #0056b3;
+  border-top-right-radius: 0;
 }
 
 .message-meta {
@@ -733,6 +749,48 @@ h4 {
   right: 0;
   margin: 10px;
   background-color: var(--phed-blue-dark);
+}
+
+/* username pop css */
+
+.username-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #f9f9f9;
+}
+
+.username-prompt h2 {
+  margin-bottom: 15px;
+}
+
+.username-prompt form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.username-prompt input {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.username-prompt button {
+  padding: 10px;
+  font-size: 16px;
+  color: white;
+  background: #007bff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.username-prompt button:hover {
+  background: #0056b3;
 }
 
 /* Dark theme scrollbar */

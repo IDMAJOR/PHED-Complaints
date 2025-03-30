@@ -17,12 +17,22 @@ export interface Complaint {
   date: Date;
 }
 
+export interface message {
+  text: string;
+  sender: string;
+}
+
+export interface Message {
+  id: number;
+  text: string;
+  sender: "user" | "admin";
+  status: "sent" | "delivered" | "read";
+}
+
 export interface Chat {
-  id: any;
   roomId: number;
   userName: string;
-  lastMessage: string;
+  messages: Message[];
   unreadCount: number;
-  lastActivity: any;
-  sender: string;
+  lastActivity: Date;
 }

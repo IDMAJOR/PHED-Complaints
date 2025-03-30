@@ -16,9 +16,9 @@ export default function ChatItem({
 }: ChatItemProps) {
   return (
     <div
-      key={chat.id}
-      className={`chat-item ${selectedChat === chat.id ? "active" : ""}`}
-      onClick={() => setSelectedChat(chat.id)}
+      key={chat.roomId} // Unique key for chat item
+      className={`chat-item ${selectedChat === chat.roomId ? "active" : ""}`}
+      onClick={() => setSelectedChat(chat.roomId)}
     >
       <div className="chat-info">
         <div className="chat-header">
@@ -31,7 +31,11 @@ export default function ChatItem({
           <span className="chat-time">{formatTime(chat.lastActivity)}</span>
         </div>
         <div className="message-check">
-          <p className="chat-preview">{chat.lastMessage}</p>
+          <p className="chat-preview">
+            {chat.messages.length > 0
+              ? chat.messages[chat.messages.length - 1].text
+              : "No messages yet"}
+          </p>
           {chat.unreadCount > 0 && (
             <span className="unread-badge">{chat.unreadCount}</span>
           )}
