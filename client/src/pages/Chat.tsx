@@ -3,6 +3,7 @@ import { FiSend, FiUser } from "react-icons/fi";
 import { BsCheck2All } from "react-icons/bs";
 import { io } from "socket.io-client";
 import UserNamePrompt from "../components/UserNamePrompt";
+import { toast } from "react-toastify";
 
 const socket = io("http://localhost:5040");
 

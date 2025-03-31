@@ -11,6 +11,7 @@ import { Chat, Complaint } from "../types/types";
 import { io } from "socket.io-client";
 import ChatItem from "../components/ChatItem";
 import MessageList from "../components/MessageList";
+import { toast } from "react-toastify";
 
 const socket = io("http://localhost:5040");
 
@@ -236,6 +237,81 @@ export default function AdminDash() {
   };
 
   useEffect(() => {
+    const fetchChats = async () => {
+      try {
+        const response = await fetch("http://localhost:5040/api/v1/chats/get");
+        const data = await response.json();
+
+        if (!response.ok) {
+          toast.error(data.message);
+          return;
+        }
+
+        if (!Array.isArray(data)) {
+          console.error("Invalid response format:", data);
+          toast.error("Unexpected response format.");
+          return;
+        }
+
+        console.log("Fetched data:", data);
+
+        setChats((prevChats) => {
+          const chatMap = new Map();
+
+          prevChats.forEach((chat) => chatMap.set(chat.roomId, chat));
+
+          data.forEach((newChat) => {
+            console.log(`Processing roomId: ${newChat.roomId}`);
+
+            const formattedMessages = Array.isArray(newChat.messages)
+              ? newChat.messages
+              : newChat.messages
+              ? [newChat.messages]
+              : [];
+
+            if (chatMap.has(newChat.roomId)) {
+              const existingChat = chatMap.get(newChat.roomId);
+
+              // ✅ Prevent duplicate messages using a Set with unique message IDs
+              const uniqueMessages = Array.from(
+                new Map(
+                  [...existingChat.messages, ...formattedMessages].map(
+                    (msg) => [msg.id, msg]
+                  )
+                ).values()
+              );
+
+              chatMap.set(newChat.roomId, {
+                ...existingChat,
+                messages: uniqueMessages, // Store only unique messages
+                unreadCount: newChat.unreadCount ?? existingChat.unreadCount,
+                lastActivity: new Date(
+                  newChat.lastActivity || existingChat.lastActivity
+                ),
+              });
+            } else {
+              chatMap.set(newChat.roomId, {
+                ...newChat,
+                messages: formattedMessages,
+                lastActivity: new Date(newChat.lastActivity),
+              });
+            }
+          });
+
+          console.log("Updated chatMap:", Array.from(chatMap.values()));
+
+          return Array.from(chatMap.values());
+        });
+      } catch (error) {
+        console.error("Fetch error:", error);
+        toast.error("Failed to load chats. Please try again.");
+      }
+    };
+
+    fetchChats();
+  }, []);
+
+  useEffect(() => {
     socket.emit("join_room", { roomId, userId });
 
     socket.on("online", (data) => {
@@ -286,6 +362,7 @@ export default function AdminDash() {
     id: number;
     message: string;
     roomId: number;
+    userName: string;
     sender: "user" | "admin";
     timestamp: Date;
     status: "sent" | "delivered" | "read";
@@ -297,6 +374,7 @@ export default function AdminDash() {
     const newMessageObj: Message = {
       id: Date.now(), // Temporary unique ID
       roomId: roomId,
+      userName: "Admin",
       message: newMessage,
       sender: "admin",
       timestamp: new Date(),
@@ -335,9 +413,10 @@ export default function AdminDash() {
         {activeTab === "chats" ? (
           <div className="chats-container">
             <div className="chat-list">
-              {chats.map((chat) => (
+              {chats.map((chat, index) => (
                 <ChatItem
                   chat={chat}
+                  key={chat.roomId + index}
                   selectedChat={selectedChat}
                   setSelectedChat={setSelectedChat}
                   formatTime={formatTime}

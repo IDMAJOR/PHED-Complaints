@@ -348,8 +348,8 @@ h4 {
 }
 
 .message-content {
-  padding: 0.75rem;
-  border-radius: 8px;
+  padding: 0.4rem 0.55rem;
+  border-radius: 15px;
 }
 
 .user .message-content {
@@ -385,10 +385,12 @@ h4 {
 
 .user .message-meta {
   color: #aaaaaa;
+  font-size: 0.7rem;
 }
 
 .agent .message-meta {
   color: #777777;
+  font-size: 0.7rem;
 }
 
 .message-status {

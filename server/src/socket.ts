@@ -52,8 +52,23 @@ export default function initializeSocket(server: HttpServer) {
       });
     });
 
-    socket.on("send_message", ({ userName, roomId, sender, message }) => {
+    socket.on("send_message", async ({ userName, roomId, sender, message }) => {
       console.log({ userName, roomId, sender, message });
+
+      const chat = new Chat({
+        roomId,
+        userName,
+        messages: {
+          id: Date.now(),
+          text: message,
+          sender,
+          status: "sent",
+        },
+        unreadCount: rooms[roomId]?.size ? rooms[roomId].size - 1 : 0,
+        lastActivity: new Date(),
+      });
+
+      await chat.save();
 
       io.to(roomId).emit("receiveMessage", {
         roomId,

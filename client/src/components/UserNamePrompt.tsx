@@ -11,7 +11,7 @@ export default function UserNamePrompt({
 }: any) {
   return (
     <div className="username-prompt">
-      <h2>Enter Your Name</h2>
+      <h2>Please Enter Your Name</h2>
       <form>
         <input
           type="text"
