@@ -1,8 +1,9 @@
 import express from "express";
-import { fetchChat } from "../controllers/chatController";
+import { createAdmin, loginAdmin } from "../controllers/adminController";
 import verifiedUserToken from "../utils/verifiedUserToken";
+
 const router = express.Router();
 
-router.get("/get", verifiedUserToken, fetchChat);
+router.post("/login", loginAdmin);
 
 export default router;

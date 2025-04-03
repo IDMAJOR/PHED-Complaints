@@ -3,9 +3,10 @@ import {
   createComplaint,
   getComplaints,
 } from "../controllers/complaintController";
+import verifyAdmin from "../utils/verifiedUserToken";
 const router = express.Router();
 
 router.route("/create").post(createComplaint);
-router.route("/get/:isAdmin").get(getComplaints);
+router.get("/get", verifyAdmin, getComplaints);
 
 export default router;

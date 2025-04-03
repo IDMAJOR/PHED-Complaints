@@ -86,14 +86,9 @@ export const getComplaints: RequestHandler = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { isAdmin } = req.params;
-
   try {
-    if (isAdmin !== "true") {
-      res.status(401).json({
-        success: false,
-        message: "Please verify your an admin",
-      });
+    if (!req.user) {
+      res.status(401).json({ error: "Unauthorized" });
       return;
     }
 

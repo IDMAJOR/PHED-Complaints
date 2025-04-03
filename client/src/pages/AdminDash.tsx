@@ -389,6 +389,26 @@ export default function AdminDash() {
     setNewMessage("");
   };
 
+  useEffect(() => {
+    const fetchComplaints = async () => {
+      try {
+        const response = await fetch(
+          `http://localhost:5040/api/v1/complaints/get/${"true"}`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          toast.error(data.message);
+        }
+
+        console.log(data);
+      } catch (error: any) {
+        toast.error(error);
+      }
+    };
+  }, []);
+
   return (
     <div className="admin-dashboard">
       <div className="dashboard-header">

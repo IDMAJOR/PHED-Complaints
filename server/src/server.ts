@@ -6,6 +6,8 @@ import initializeSocket from "./socket";
 import connectDB from "./database/connectDB";
 import complaintRoute from "./routes/complaintRoutes";
 import chatRoute from "./routes/chatRoutes";
+import cookieParser from "cookie-parser";
+import adminRoutes from "./routes/AdminRoutes";
 
 dotenv.config();
 
@@ -20,6 +22,7 @@ const io = initializeSocket(server);
 
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 
 app.get("/", (req: Request, res: Response) => {
   res.send("Hello from TypeScript Express!");
@@ -27,6 +30,7 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use("/api/v1/complaints", complaintRoute);
 app.use("/api/v1/chats", chatRoute);
+app.use("/api/v1/admin", adminRoutes);
 
 // Start the server
 server.listen(port, () => {
