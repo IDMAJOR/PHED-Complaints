@@ -37,7 +37,7 @@ const Registration = () => {
 
     try {
       const response = await fetch(
-        "http://localhost:5040/api/v1/complaints/create",
+        "https://phed-complaints.onrender.com/api/v1/complaints/create",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

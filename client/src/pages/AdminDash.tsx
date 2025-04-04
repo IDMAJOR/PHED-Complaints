@@ -5,6 +5,7 @@ import {
   FiMapPin,
   FiPhone,
   FiAlertCircle,
+  FiCheck,
 } from "react-icons/fi";
 import { Chat, Complaint } from "../types/types";
 
@@ -12,191 +13,24 @@ import { io } from "socket.io-client";
 import ChatItem from "../components/ChatItem";
 import MessageList from "../components/MessageList";
 import { toast } from "react-toastify";
+import moment from "moment"; // Import moment
 
-const socket = io("http://localhost:5040");
+const socket = io("https://phed-complaints.onrender.com");
 
-const roomId = 123456;
 const userId = 132435;
 export default function AdminDash() {
   const [activeTab, setActiveTab] = useState<"chats" | "complaints">("chats");
-  // const [userMessage, setUserMessage] = useState<string[]>([]);
+  const [isSignedIn, setIsSignedIn] = useState<boolean>(false);
+  const [key, setKey] = useState<string>("");
+  const [adminName, setAdminName] = useState<string>("");
 
   // Sample complaints data
-  const [complaints, setComplaints] = useState<Complaint[]>([
-    {
-      id: 1,
-      fullName: "John Doe",
-      address: "123 Main St, Port Harcourt",
-      meterNumber: "PHED-123456",
-      phoneNumber: "08012345678",
-      complaint: "No power supply for 3 days",
-      status: "Pending",
-      date: new Date(Date.now() - 86400000),
-    },
-    {
-      id: 2,
-      fullName: "Jane Smith",
-      address: "456 Broad St, Port Harcourt",
-      meterNumber: "PHED-789012",
-      phoneNumber: "08087654321",
-      complaint: "Faulty meter reading",
-      status: "In Progress",
-      date: new Date(Date.now() - 3600000),
-    },
-    {
-      id: 3,
-      fullName: "Mike Johnson",
-      address: "789 Park Ave, Port Harcourt",
-      meterNumber: "PHED-345678",
-      phoneNumber: "08011223344",
-      complaint: "High bill estimation",
-      status: "Resolved",
-      date: new Date(Date.now() - 259200000),
-    },
-  ]);
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
 
   const [newMessage, setNewMessage] = useState("");
 
   // Sample chats data
-  const [chats, setChats] = useState<Chat[]>([
-    {
-      roomId: 101,
-      userName: "Alex Carter",
-      messages: [
-        {
-          id: 1,
-          text: "Hey, is the React course still available?",
-          sender: "user",
-          status: "sent",
-        },
-        {
-          id: 2,
-          text: "Yes! Do you want a discount code?",
-          sender: "admin",
-          status: "delivered",
-        },
-        {
-          id: 3,
-          text: "That would be great! How much discount?",
-          sender: "user",
-          status: "sent",
-        },
-        {
-          id: 4,
-          text: "You can get 20% off if you sign up today.",
-          sender: "admin",
-          status: "read",
-        },
-      ],
-      unreadCount: 2, // User hasn't read recent messages
-      lastActivity: new Date(Date.now() - 5 * 60 * 1000), // 5 minutes ago
-    },
-    {
-      roomId: 102,
-      userName: "Sophia Lee",
-      messages: [
-        {
-          id: 1,
-          text: "Can we reschedule our meeting to Friday?",
-          sender: "user",
-          status: "delivered",
-        },
-        {
-          id: 2,
-          text: "Let me check my calendar. One moment.",
-          sender: "admin",
-          status: "read",
-        },
-        {
-          id: 3,
-          text: "Sure, Friday at 3 PM works!",
-          sender: "admin",
-          status: "read",
-        },
-        { id: 4, text: "Perfect, thanks!", sender: "user", status: "sent" },
-      ],
-      unreadCount: 0, // All messages read
-      lastActivity: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-    },
-    {
-      roomId: 103,
-      userName: "Derek Owens",
-      messages: [
-        {
-          id: 1,
-          text: "Hey, are you coming to the party tonight?",
-          sender: "user",
-          status: "sent",
-        },
-        {
-          id: 2,
-          text: "Yeah! What time does it start?",
-          sender: "admin",
-          status: "delivered",
-        },
-        {
-          id: 3,
-          text: "Around 8 PM. Bring some snacks!",
-          sender: "user",
-          status: "read",
-        },
-      ],
-      unreadCount: 1, // One unread message
-      lastActivity: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-    },
-    {
-      roomId: 104,
-      userName: "Olivia Martin",
-      messages: [
-        {
-          id: 1,
-          text: "Do you have any updates on my order?",
-          sender: "user",
-          status: "sent",
-        },
-        {
-          id: 2,
-          text: "Yes! Your order will be delivered by tomorrow.",
-          sender: "admin",
-          status: "delivered",
-        },
-        {
-          id: 3,
-          text: "Great, thanks for the quick response!",
-          sender: "user",
-          status: "read",
-        },
-      ],
-      unreadCount: 0, // Fully read conversation
-      lastActivity: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
-    },
-    {
-      roomId: 105,
-      userName: "Nathan Rivera",
-      messages: [
-        {
-          id: 1,
-          text: "Hey bro, wanna game tonight?",
-          sender: "user",
-          status: "sent",
-        },
-        {
-          id: 2,
-          text: "For sure! Which game are we playing?",
-          sender: "admin",
-          status: "delivered",
-        },
-        {
-          id: 3,
-          text: "Maybe FIFA or COD. Up to you!",
-          sender: "user",
-          status: "read",
-        },
-      ],
-      unreadCount: 3, // More unread messages
-      lastActivity: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
-    },
-  ]);
+  const [chats, setChats] = useState<Chat[]>([]);
 
   const [selectedChat, setSelectedChat] = useState<number | null>(null);
   const [selectedComplaint, setSelectedComplaint] = useState<number | null>(
@@ -210,13 +44,13 @@ export default function AdminDash() {
   //   };
   // }>({});
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString("en-NG", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
-  };
+  // const formatDate = (date: Date) => {
+  //   return date.toLocaleDateString("en-NG", {
+  //     day: "numeric",
+  //     month: "short",
+  //     year: "numeric",
+  //   });
+  // };
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString("en-NG", {
@@ -239,10 +73,18 @@ export default function AdminDash() {
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const response = await fetch("http://localhost:5040/api/v1/chats/get");
+        const response = await fetch("https://phed-complaints.onrender.com/api/v1/chats/get", {
+          method: "GET",
+          credentials: "include",
+        });
         const data = await response.json();
 
         if (!response.ok) {
+          if (response.status === 401 || 400) {
+            toast.error("Please verify your an admin");
+            setIsSignedIn(false);
+            return;
+          }
           toast.error(data.message);
           return;
         }
@@ -253,7 +95,7 @@ export default function AdminDash() {
           return;
         }
 
-        console.log("Fetched data:", data);
+        setIsSignedIn(true);
 
         setChats((prevChats) => {
           const chatMap = new Map();
@@ -261,8 +103,6 @@ export default function AdminDash() {
           prevChats.forEach((chat) => chatMap.set(chat.roomId, chat));
 
           data.forEach((newChat) => {
-            console.log(`Processing roomId: ${newChat.roomId}`);
-
             const formattedMessages = Array.isArray(newChat.messages)
               ? newChat.messages
               : newChat.messages
@@ -298,8 +138,6 @@ export default function AdminDash() {
             }
           });
 
-          console.log("Updated chatMap:", Array.from(chatMap.values()));
-
           return Array.from(chatMap.values());
         });
       } catch (error) {
@@ -309,10 +147,10 @@ export default function AdminDash() {
     };
 
     fetchChats();
-  }, []);
+  }, [isSignedIn, socket]);
 
   useEffect(() => {
-    socket.emit("join_room", { roomId, userId });
+    socket.emit("join_room", { roomId: selectedChat, userId });
 
     socket.on("online", (data) => {
       console.log(data);
@@ -320,7 +158,7 @@ export default function AdminDash() {
 
     // Ensure old listener is removed before adding a new one
     socket.off("receiveMessage").on("receiveMessage", (data) => {
-      console.log("New message:", data);
+      // console.log("New message:", data);
 
       setChats((prevChats) => {
         const chatExists = prevChats.find(
@@ -356,7 +194,7 @@ export default function AdminDash() {
     return () => {
       socket.off("receiveMessage"); // Cleanup on unmount
     };
-  }, [socket]);
+  }, [socket, selectedChat]);
 
   type Message = {
     id: number;
@@ -368,13 +206,13 @@ export default function AdminDash() {
     status: "sent" | "delivered" | "read";
   };
 
-  const handleSend = async () => {
+  const handleSend = async (roomId: number) => {
     if (newMessage.trim() === "") return;
 
     const newMessageObj: Message = {
       id: Date.now(), // Temporary unique ID
       roomId: roomId,
-      userName: "Admin",
+      userName: chats[0].userName,
       message: newMessage,
       sender: "admin",
       timestamp: new Date(),
@@ -393,26 +231,144 @@ export default function AdminDash() {
     const fetchComplaints = async () => {
       try {
         const response = await fetch(
-          `http://localhost:5040/api/v1/complaints/get/${"true"}`
+          `https://phed-complaints.onrender.com/api/v1/complaints/get`,
+          {
+            method: "GET",
+            credentials: "include",
+          }
         );
 
         const data = await response.json();
 
         if (!response.ok) {
+          if (response.status === 401 || 400) {
+            toast.error("Please verify your an admin");
+            setIsSignedIn(false);
+            return;
+          }
           toast.error(data.message);
+          return;
         }
 
-        console.log(data);
+        setIsSignedIn(true);
+        console.log("complaints ---", data.data.complaints);
+
+        setComplaints(data.data.complaints);
       } catch (error: any) {
         toast.error(error);
       }
     };
-  }, []);
+
+    fetchComplaints();
+  }, [isSignedIn]);
+
+  const logAdmin = async () => {
+    // console.log(adminName, key);
+    try {
+      const response = await fetch("https://phed-complaints.onrender.com/api/v1/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ agentname: adminName, key }),
+      });
+
+      const data = await response.json();
+
+      // console.log(data);
+
+      if (!response.ok) {
+        toast.error(data.message);
+        return;
+      }
+
+      setIsSignedIn(true);
+      toast.success(data.message);
+    } catch (error: any) {
+      toast.error(error.message);
+    }
+  };
 
   return (
     <div className="admin-dashboard">
       <div className="dashboard-header">
-        <h2>PHED Admin Dashboard</h2>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <h2>PHED Admin Dashboard</h2>
+          {!isSignedIn ? (
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: 2,
+                backgroundColor: "var(--border-color)",
+                borderRadius: 20,
+                padding: 2,
+              }}
+            >
+              <input
+                type="name"
+                placeholder="Enter an admin name"
+                value={adminName}
+                onChange={(e) => setAdminName(e.target.value)}
+                style={{
+                  padding: 7,
+                  border: "none",
+                  outline: "none",
+                  borderRadius: 20,
+                  fontSize: "0.9rem",
+                  color: "var(--text-muted)",
+                  backgroundColor: "var(--input-bg)",
+                }}
+              />
+              <input
+                type="key"
+                placeholder="Insert your key here..."
+                value={key}
+                onChange={(e) => setKey(e.target.value)}
+                style={{
+                  padding: 7,
+                  border: "none",
+                  outline: "none",
+                  borderRadius: 20,
+                  fontSize: "0.9rem",
+                  color: "var(--text-muted)",
+                  backgroundColor: "var(--input-bg)",
+                }}
+              />
+              <button
+                onClick={() => logAdmin()}
+                style={{
+                  fontSize: "1rem",
+                  width: 30,
+                  height: 30,
+                  padding: 5,
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  borderRadius: "50%",
+                  border: "none",
+                  fontWeight: 500,
+                  cursor: "pointer",
+                  color: "var(--text-muted)",
+                  backgroundColor: "var(--input-bg)",
+                }}
+              >
+                <FiCheck />
+              </button>
+            </div>
+          ) : (
+            <div>
+              <h2>Welcome {"Miss Chioma"}</h2>
+            </div>
+          )}
+        </div>
+
         <div className="admin-tabs">
           <button
             className={activeTab === "chats" ? "active" : ""}
@@ -433,15 +389,21 @@ export default function AdminDash() {
         {activeTab === "chats" ? (
           <div className="chats-container">
             <div className="chat-list">
-              {chats.map((chat, index) => (
-                <ChatItem
-                  chat={chat}
-                  key={chat.roomId + index}
-                  selectedChat={selectedChat}
-                  setSelectedChat={setSelectedChat}
-                  formatTime={formatTime}
-                />
-              ))}
+              {chats
+                .sort(
+                  (a, b) =>
+                    new Date(b.lastActivity).getTime() -
+                    new Date(a.lastActivity).getTime()
+                ) // Sort by lastActivity timestamp
+                .map((chat, index) => (
+                  <ChatItem
+                    chat={chat}
+                    key={chat.roomId + index}
+                    selectedChat={selectedChat}
+                    setSelectedChat={setSelectedChat}
+                    formatTime={formatTime}
+                  />
+                ))}
             </div>
             {selectedChat !== null ? (
               <MessageList
@@ -467,38 +429,44 @@ export default function AdminDash() {
         ) : (
           <div className="complaints-container">
             <div className="complaints-list">
-              {complaints.map((complaint) => (
-                <div
-                  key={complaint.id}
-                  className={`complaint-item ${
-                    selectedComplaint === complaint.id ? "active" : ""
-                  }`}
-                  onClick={() => setSelectedComplaint(complaint.id)}
-                >
-                  <div className="complaint-header">
-                    <h4>{complaint.fullName}</h4>
-                    <span
-                      className={`status-badge ${complaint.status
-                        .toLowerCase()
-                        .replace(" ", "-")}`}
-                    >
-                      {complaint.status}
-                    </span>
+              {complaints
+                .sort(
+                  (a, b) =>
+                    new Date(b.createdAt).getTime() -
+                    new Date(a.createdAt).getTime()
+                ) // Sort by lastActivity timestamp
+                .map((complaint) => (
+                  <div
+                    key={complaint.id}
+                    className={`complaint-item ${
+                      selectedComplaint === complaint.id ? "active" : ""
+                    }`}
+                    onClick={() => setSelectedComplaint(complaint.id)}
+                  >
+                    <div className="complaint-header">
+                      <h4>{complaint.fullName}</h4>
+                      <span
+                        className={`status-badge ${complaint.status
+                          .toLowerCase()
+                          .replace(" ", "-")}`}
+                      >
+                        {complaint.status}
+                      </span>
+                    </div>
+                    <p className="complaint-preview">
+                      {complaint.complaintDetails.substring(0, 60)}...
+                    </p>
+                    <div className="complaint-meta">
+                      <span>
+                        <FiMapPin /> {complaint.address}
+                      </span>
+                      <span>
+                        <FiPhone /> {complaint.phoneNumber}
+                      </span>
+                      <span>{moment(complaint.createdAt).format("LL")}</span>
+                    </div>
                   </div>
-                  <p className="complaint-preview">
-                    {complaint.complaint.substring(0, 60)}...
-                  </p>
-                  <div className="complaint-meta">
-                    <span>
-                      <FiMapPin /> {complaint.address}
-                    </span>
-                    <span>
-                      <FiPhone /> {complaint.phoneNumber}
-                    </span>
-                    <span>{formatDate(complaint.date)}</span>
-                  </div>
-                </div>
-              ))}
+                ))}
             </div>
 
             <div className="complaint-detail">
@@ -560,7 +528,7 @@ export default function AdminDash() {
                           <label>
                             <FiAlertCircle /> Complaint Details
                           </label>
-                          <p>{complaint.complaint}</p>
+                          <p>{complaint.complaintDetails}</p>
                         </div>
 
                         <div className="complaint-field">
@@ -571,8 +539,13 @@ export default function AdminDash() {
                         <div className="complaint-field">
                           <label>Date Submitted</label>
                           <p>
-                            {formatDate(complaint.date)} at{" "}
-                            {formatTime(complaint.date)}
+                            <span>
+                              {moment(complaint.createdAt).format("LL")}
+                            </span>{" "}
+                            By{" "}
+                            <span>
+                              {moment(complaint.createdAt).format("h:mm A")}
+                            </span>
                           </p>
                         </div>
                       </>

@@ -17,6 +17,7 @@ export default function MessageList({
   newMessage,
   setNewMessage,
 }: MessageListProps) {
+  console.log("This is it: ", selectedChat);
   if (!selectedChat) {
     return (
       <div className="chat-detail">
@@ -58,7 +59,7 @@ export default function MessageList({
                       {formatTime(new Date())}
                     </span>
 
-                    {msg.sender === "user" && (
+                    {msg.sender === "admin" && (
                       <span className="message-status sent">
                         <BsCheck2All />
                       </span>
@@ -78,9 +79,14 @@ export default function MessageList({
             type="text"
             placeholder="Type your message..."
             value={newMessage}
+            onKeyPress={(e) =>
+              e.key === "Enter" && newMessage && handleSend(selectedChat.roomId)
+            }
             onChange={(e) => setNewMessage(e.target.value)}
           />
-          <button onClick={() => void handleSend()}>Send</button>
+          <button onClick={() => void handleSend(selectedChat.roomId)}>
+            Send
+          </button>
         </div>
       </div>
     </div>

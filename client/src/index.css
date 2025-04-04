@@ -680,7 +680,7 @@ h4 {
 .chat-input {
   display: flex;
   gap: 0.5rem;
-  padding: 1rem 0;
+  padding: 1rem 0.5rem;
   border-top: 1px solid var(--border-color);
 }
 
@@ -688,7 +688,7 @@ h4 {
   flex: 1;
   padding: 0.5rem;
   border: 1px solid var(--border-color);
-  border-radius: 4px;
+  border-radius: 10px;
   background-color: var(--input-bg);
   color: var(--text-color);
 }
@@ -697,7 +697,7 @@ h4 {
   background-color: var(--phed-blue);
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 10px;
   padding: 0 1rem;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -760,39 +760,107 @@ h4 {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
-  background: #f9f9f9;
+  min-height: 100vh;
+  background: linear-gradient(
+    135deg,
+    var(--border-color) 0%,
+    var(--bg-color) 100%
+  );
+  padding: 2rem;
+  font-family: "Segoe UI", Roboto, -apple-system, sans-serif;
+}
+
+.username-prompt .card {
+  background: var(--border-color);
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.username-prompt .card:hover {
+  transform: translateY(-5px);
 }
 
 .username-prompt h2 {
-  margin-bottom: 15px;
+  margin: 0 0 1.5rem 0;
+  color: var(--phed-blue-light);
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.username-prompt p.subtitle {
+  color: var(--text-color);
+  margin-bottom: 2rem;
+  font-size: 1rem;
 }
 
 .username-prompt form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 1.2rem;
+  width: 100%;
+}
+
+.username-prompt .input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  text-align: left;
+}
+
+.username-prompt label {
+  font-size: 0.9rem;
+  color: var(--text-color);
+  font-weight: 500;
 }
 
 .username-prompt input {
-  padding: 10px;
-  font-size: 16px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  padding: 12px 15px;
+  font-size: 1rem;
+  border: 2px solid #e0e6ed;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  background-color: #f8fafc;
+}
+
+.username-prompt input:focus {
+  outline: none;
+  border-color: #4d90fe;
+  box-shadow: 0 0 0 2px rgba(77, 144, 254, 0.2);
+  background-color: white;
 }
 
 .username-prompt button {
-  padding: 10px;
-  font-size: 16px;
+  padding: 12px;
+  font-size: 1rem;
   color: white;
-  background: #007bff;
+  background: #4a6cf7;
   border: none;
-  border-radius: 5px;
+  border-radius: 8px;
   cursor: pointer;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
 }
 
 .username-prompt button:hover {
-  background: #0056b3;
+  background: #3a5bd9;
+  transform: translateY(-2px);
+}
+
+.username-prompt button:active {
+  transform: translateY(0);
+}
+
+.username-prompt .footer-text {
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+  color: #95a5a6;
 }
 
 /* Dark theme scrollbar */

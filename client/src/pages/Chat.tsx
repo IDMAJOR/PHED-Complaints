@@ -3,22 +3,23 @@ import { FiSend, FiUser } from "react-icons/fi";
 import { BsCheck2All } from "react-icons/bs";
 import { io } from "socket.io-client";
 import UserNamePrompt from "../components/UserNamePrompt";
-import { toast } from "react-toastify";
+import { ClipLoader } from "react-spinners";
+import { v4 as uuidv4 } from "uuid";
 
-const socket = io("http://localhost:5040");
+const socket = io("https://phed-complaints.onrender.com");
 
 type Message = {
   id: number;
   message: string;
   userName: string;
-  roomId: number;
+  roomId: any;
   sender: "user" | "agent";
   timestamp: Date;
   status: "sent" | "delivered" | "read";
 };
 
-const roomId = 123456;
-const userId = 654321;
+const roomId = uuidv4();
+const userId = uuidv4();
 
 export default function Chat() {
   const [messages, setMessages] = useState<any[]>([]);
@@ -26,9 +27,10 @@ export default function Chat() {
   const [onlineUsers, setOnlineUsers] = useState<number[] | null>(null);
   const [fullname, setFullname] = useState<boolean>(false);
   const [userName, setUserName] = useState<string>("");
+  const [loading, SetLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    socket.emit("join_room", { roomId, userId });
+    socket.emit("join_room", { roomId: roomId, userId });
 
     const handleReceiveMessage = (data: any) => {
       console.log("Received Data:", data);
@@ -82,6 +84,8 @@ export default function Chat() {
   const handleSend = async () => {
     if (newMessage.trim() === "") return;
 
+    SetLoading(true);
+
     const message: Message = {
       id: messages.length + 1,
       roomId: roomId,
@@ -94,6 +98,7 @@ export default function Chat() {
 
     await socket.emit("send_message", message);
 
+    SetLoading(false);
     setNewMessage("");
   };
 
@@ -103,6 +108,8 @@ export default function Chat() {
       minute: "2-digit",
     });
   };
+
+  console.log(loading);
 
   return (
     <div className="chat-container">
@@ -164,10 +171,14 @@ export default function Chat() {
         />
         <button
           onClick={handleSend}
-          disabled={!fullname}
+          disabled={!fullname && loading}
           style={{ cursor: fullname ? "pointer" : "not-allowed" }}
         >
-          <FiSend />
+          {!loading ? (
+            <FiSend />
+          ) : (
+            <ClipLoader color="#1d4ed8" loading={true} size={35} />
+          )}
         </button>
       </div>
     </div>

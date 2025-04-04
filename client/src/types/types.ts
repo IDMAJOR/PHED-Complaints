@@ -12,9 +12,9 @@ export interface Complaint {
   address: string;
   meterNumber: string;
   phoneNumber: string;
-  complaint: string;
+  complaintDetails: string;
   status: "Pending" | "In Progress" | "Resolved";
-  date: Date;
+  createdAt: Date;
 }
 
 export interface message {
@@ -27,10 +27,11 @@ export interface Message {
   text: string;
   sender: "user" | "admin";
   status: "sent" | "delivered" | "read";
+  timestamp: Date;
 }
 
 export interface Chat {
-  roomId: number;
+  roomId: any;
   userName: string;
   messages: Message[];
   unreadCount: number;
