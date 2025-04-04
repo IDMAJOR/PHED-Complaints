@@ -1,15 +1,13 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
-import Admin from "../models/AdminSchema"; // Adjust the path as needed
+import Admin from "../models/AdminSchema";
 import jwt from "jsonwebtoken";
 
-// Corrected CreateAdmin type
 type CreateAdmin = {
-  key: string; // Expecting a string for the key (password or API key)
-  agentname: string; // Expecting a string for the agent name
+  key: string;
+  agentname: string;
 };
 
-// **Admin Registration (Create Admin)**
 export const createAdmin = async (
   req: Request<{}, {}, CreateAdmin>,
   res: Response

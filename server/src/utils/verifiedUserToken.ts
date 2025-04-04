@@ -23,7 +23,7 @@ declare global {
 const verifyAdmin = (req: Request, res: Response, next: NextFunction): void => {
   const token = req.cookies?.authToken;
 
-  console.log(token);
+  console.log("Token from cookie:", token);
 
   if (!token) {
     res.status(401).json({

@@ -8,7 +8,7 @@ export const fetchChat = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const chats = await ChatSchema.find().sort({ timestamp: 1 });
+    const chats = await ChatSchema.find().sort({ timestamp: -1 });
     res.status(200).json(chats);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch chat history" });

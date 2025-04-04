@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const ChatSchema = new mongoose.Schema({
-  roomId: { type: Number, required: true },
+  roomId: { type: String, required: true },
   userName: { type: String, required: true },
   messages: {
     id: { type: Number, required: true, unique: true }, // Unique ID for each message
