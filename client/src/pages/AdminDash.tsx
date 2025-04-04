@@ -23,6 +23,11 @@ export default function AdminDash() {
   const [isSignedIn, setIsSignedIn] = useState<boolean>(false);
   const [key, setKey] = useState<string>("");
   const [adminName, setAdminName] = useState<string>("");
+  const [complaintsForm, setComplaintsForm] = useState<any>({
+    name: "John Doe",
+    email: "john@example.com",
+    complaint: "The air conditioner is broken.",
+  });
 
   // Sample complaints data
   const [complaints, setComplaints] = useState<Complaint[]>([]);
@@ -73,10 +78,13 @@ export default function AdminDash() {
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const response = await fetch("https://phed-complaints.onrender.com/api/v1/chats/get", {
-          method: "GET",
-          credentials: "include",
-        });
+        const response = await fetch(
+          "https://phed-complaints.onrender.com/api/v1/chats/get",
+          {
+            method: "GET",
+            credentials: "include",
+          }
+        );
         const data = await response.json();
 
         if (!response.ok) {
@@ -265,12 +273,15 @@ export default function AdminDash() {
   const logAdmin = async () => {
     // console.log(adminName, key);
     try {
-      const response = await fetch("https://phed-complaints.onrender.com/api/v1/admin/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ agentname: adminName, key }),
-      });
+      const response = await fetch(
+        "https://phed-complaints.onrender.com/api/v1/admin/login",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ agentname: adminName, key }),
+        }
+      );
 
       const data = await response.json();
 
@@ -285,6 +296,32 @@ export default function AdminDash() {
       toast.success(data.message);
     } catch (error: any) {
       toast.error(error.message);
+    }
+  };
+
+  const handleSubmitToSheets = async (e: any) => {
+    e.preventDefault();
+
+    console.log("Running...");
+
+    try {
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbzZ6wUeIzRaVV1Z1CpCvm41PA62a_r_ei_UnjfvivKBgrwu0aRXm-U3cBPn2V_zxLxMuw/exec",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(complaintsForm),
+        }
+      );
+
+      const result = await response.json();
+      console.log("Form submitted:", result);
+      toast.success("Success!");
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast.error("Submission failed!");
     }
   };
 
@@ -562,7 +599,9 @@ export default function AdminDash() {
         )}
       </div>
       {activeTab === "complaints" && (
-        <button className="ver-btn"> Proceed all to sheets</button>
+        <button className="ver-btn" onChange={(e) => handleSubmitToSheets(e)}>
+          Proceed all to sheets
+        </button>
       )}
     </div>
   );
