@@ -93,6 +93,12 @@ export default function AdminDash() {
           return;
         }
 
+        setComplaintsForm({
+          name: "John Doe",
+          email: "john@example.com",
+          message: "The air conditioner is broken.",
+        });
+
         if (!Array.isArray(data)) {
           console.error("Invalid response format:", data);
           toast.error("Unexpected response format.");
@@ -320,11 +326,6 @@ export default function AdminDash() {
       toast.error("Submission failed!");
     }
   };
-  setComplaintsForm({
-    name: "John Doe",
-    email: "john@example.com",
-    message: "The air conditioner is broken.",
-  });
 
   return (
     <div className="admin-dashboard">
