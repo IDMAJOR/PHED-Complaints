@@ -23,11 +23,7 @@ export default function AdminDash() {
   const [isSignedIn, setIsSignedIn] = useState<boolean>(false);
   const [key, setKey] = useState<string>("");
   const [adminName, setAdminName] = useState<string>("");
-  const [complaintsForm, setComplaintsForm] = useState<any>({
-    name: "John Doe",
-    email: "john@example.com",
-    complaint: "The air conditioner is broken.",
-  });
+  const [complaintsForm, setComplaintsForm] = useState<any | null>(null);
 
   // Sample complaints data
   const [complaints, setComplaints] = useState<Complaint[]>([]);
@@ -324,6 +320,11 @@ export default function AdminDash() {
       toast.error("Submission failed!");
     }
   };
+  setComplaintsForm({
+    name: "John Doe",
+    email: "john@example.com",
+    message: "The air conditioner is broken.",
+  });
 
   return (
     <div className="admin-dashboard">
