@@ -22,7 +22,7 @@ const io = initializeSocket(server);
 
 app.use(
   cors({
-    origin: "https://phed-complaints.vercel.app",
+    origin: "http://localhost:5173",
     credentials: true,
   })
 );

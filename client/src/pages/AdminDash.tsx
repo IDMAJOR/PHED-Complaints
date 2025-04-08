@@ -17,7 +17,7 @@ import moment from "moment";
 import { format } from "date-fns";
 import LoadingBar from "../components/LoadingBar";
 
-const socket = io("https://phed-complaints.onrender.com");
+const socket = io("http://localhost:5040");
 
 const userId = 132435;
 
@@ -32,6 +32,7 @@ export default function AdminDash() {
   const [isLoading, setIsLoading] = useState(false);
   const [ticketID, setTicketID] = useState<any>(" ");
   const [pushingPercent, setPushingPercent] = useState<any>(0);
+  const [playNotificationSound, setPlayNotificationSound] = useState(false);
 
   const [complaints, setComplaints] = useState<Complaint[]>([]);
 
@@ -84,13 +85,10 @@ export default function AdminDash() {
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const response = await fetch(
-          "https://phed-complaints.onrender.com/api/v1/chats/get",
-          {
-            method: "GET",
-            credentials: "include",
-          }
-        );
+        const response = await fetch("http://localhost:5040/api/v1/chats/get", {
+          method: "GET",
+          credentials: "include",
+        });
         const data = await response.json();
 
         if (!response.ok) {
@@ -181,6 +179,7 @@ export default function AdminDash() {
 
         if (chatExists) {
           // Update the existing chat and append the new message
+          setPlayNotificationSound(true);
           return prevChats.map((chat) =>
             chat.roomId === data.roomId
               ? {
@@ -193,6 +192,7 @@ export default function AdminDash() {
           );
         } else {
           // Add a new chat if it doesn't exist
+          setPlayNotificationSound(true);
           return [
             ...prevChats,
             {
@@ -245,7 +245,7 @@ export default function AdminDash() {
     const fetchComplaints = async () => {
       try {
         const response = await fetch(
-          `https://phed-complaints.onrender.com/api/v1/complaints/get`,
+          `http://localhost:5040/api/v1/complaints/get`,
           {
             method: "GET",
             credentials: "include",
@@ -278,15 +278,12 @@ export default function AdminDash() {
   const logAdmin = async () => {
     // console.log(adminName, key);
     try {
-      const response = await fetch(
-        "https://phed-complaints.onrender.com/api/v1/admin/login",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ agentname: adminName, key }),
-        }
-      );
+      const response = await fetch("http://localhost:5040/api/v1/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ agentname: adminName, key }),
+      });
 
       const data = await response.json();
 
@@ -449,7 +446,7 @@ export default function AdminDash() {
 
     try {
       const res = await fetch(
-        "https://phed-complaints.onrender.com/api/v1/complaints/update",
+        "http://localhost:5040/api/v1/complaints/update",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -469,6 +466,16 @@ export default function AdminDash() {
       toast.error(error.message);
     }
   };
+
+  useEffect(() => {
+    console.log(playNotificationSound);
+    if (playNotificationSound === true) {
+      const audio = new Audio("/mixkit-liquid-bubble-3000.wav");
+      audio.play();
+    }
+
+    setPlayNotificationSound(false);
+  }, [playNotificationSound]);
 
   return (
     <div className="admin-dashboard">

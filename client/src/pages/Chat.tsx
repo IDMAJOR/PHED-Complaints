@@ -5,8 +5,9 @@ import { io } from "socket.io-client";
 import UserNamePrompt from "../components/UserNamePrompt";
 import { ClipLoader } from "react-spinners";
 import { v4 as uuidv4 } from "uuid";
+import AutoAudioPlayer from "../components/AutoAudioPlayer";
 
-const socket = io("https://phed-complaints.onrender.com");
+const socket = io("http://localhost:5040");
 
 type Message = {
   id: number;
@@ -28,12 +29,15 @@ export default function Chat() {
   const [fullname, setFullname] = useState<boolean>(false);
   const [userName, setUserName] = useState<string>("");
   const [loading, SetLoading] = useState<boolean>(false);
+  const [playNotificationSound, setPlayNotificationSound] = useState(false);
+  let node = 0;
 
   useEffect(() => {
     socket.emit("join_room", { roomId: roomId, userId });
 
     const handleReceiveMessage = (data: any) => {
       console.log("Received Data:", data);
+      node += 1;
 
       if (Array.isArray(data)) {
         const formattedMessages = data.map((item) => ({
@@ -49,6 +53,10 @@ export default function Chat() {
       } else {
         setMessages((prev) => {
           if (!prev.some((msg) => msg.id === data.messages.id)) {
+            // Play sound only for new incoming messages (from agent)
+            if (data.messages.sender === "admin") {
+              setPlayNotificationSound(true);
+            }
             return [
               ...prev,
               {
@@ -75,11 +83,9 @@ export default function Chat() {
 
     return () => {
       socket.off("receiveMessage", handleReceiveMessage);
-      socket.off("online"); // Optional: Remove 'online' listener as well
+      socket.off("online");
     };
   }, []);
-
-  console.log(messages);
 
   const handleSend = async () => {
     if (newMessage.trim() === "") return;
@@ -109,7 +115,16 @@ export default function Chat() {
     });
   };
 
-  console.log(loading);
+  console.log(playNotificationSound);
+
+  useEffect(() => {
+    if (playNotificationSound === true) {
+      const audio = new Audio("/mixkit-liquid-bubble-3000.wav");
+      audio.play();
+    }
+
+    setPlayNotificationSound(false);
+  }, [playNotificationSound]);
 
   return (
     <div className="chat-container">
