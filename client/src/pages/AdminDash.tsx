@@ -21,17 +21,6 @@ const socket = io("https://phed-complaints.onrender.com");
 
 const userId = 132435;
 
-type FormData = {
-  Name: string;
-  Address: string;
-  Phone: string;
-  Meter: string;
-  Category: string;
-  Nature: string;
-  Source: string;
-  Details: string;
-};
-
 export default function AdminDash() {
   const [activeTab, setActiveTab] = useState<"chats" | "complaints">(
     "complaints"
@@ -178,7 +167,7 @@ export default function AdminDash() {
     socket.emit("join_room", { roomId: selectedChat, userId });
 
     socket.on("online", (data) => {
-      // console.log(data);
+      console.log(data);
     });
 
     // Ensure old listener is removed before adding a new one
@@ -363,7 +352,7 @@ export default function AdminDash() {
 
       if (!res.ok) throw new Error("Submission failed");
 
-      const data = await res.json();
+      // const data = await res.json();
 
       pushed += 1;
       LoadPercent(pushed, complaints.length);
