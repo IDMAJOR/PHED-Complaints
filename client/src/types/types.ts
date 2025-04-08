@@ -8,6 +8,7 @@ export interface FormData {
 
 export interface Complaint {
   id: number;
+  _id?: any;
   fullName: string;
   address: string;
   meterNumber: string;
@@ -15,6 +16,7 @@ export interface Complaint {
   complaintDetails: string;
   status: "Pending" | "In Progress" | "Resolved";
   createdAt: Date;
+  tickedID: number;
 }
 
 export interface message {

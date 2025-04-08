@@ -13,19 +13,37 @@ import { io } from "socket.io-client";
 import ChatItem from "../components/ChatItem";
 import MessageList from "../components/MessageList";
 import { toast } from "react-toastify";
-import moment from "moment"; // Import moment
+import moment from "moment";
+import { format } from "date-fns";
+import LoadingBar from "../components/LoadingBar";
 
 const socket = io("https://phed-complaints.onrender.com");
 
 const userId = 132435;
+
+type FormData = {
+  Name: string;
+  Address: string;
+  Phone: string;
+  Meter: string;
+  Category: string;
+  Nature: string;
+  Source: string;
+  Details: string;
+};
+
 export default function AdminDash() {
-  const [activeTab, setActiveTab] = useState<"chats" | "complaints">("chats");
+  const [activeTab, setActiveTab] = useState<"chats" | "complaints">(
+    "complaints"
+  );
   const [isSignedIn, setIsSignedIn] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
   const [key, setKey] = useState<string>("");
   const [adminName, setAdminName] = useState<string>("");
-  const [complaintsForm, setComplaintsForm] = useState<any | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [ticketID, setTicketID] = useState<any>(" ");
+  const [pushingPercent, setPushingPercent] = useState<any>(0);
 
-  // Sample complaints data
   const [complaints, setComplaints] = useState<Complaint[]>([]);
 
   const [newMessage, setNewMessage] = useState("");
@@ -34,6 +52,9 @@ export default function AdminDash() {
   const [chats, setChats] = useState<Chat[]>([]);
 
   const [selectedChat, setSelectedChat] = useState<number | null>(null);
+  const [selectedPush, setSelectedPush] = useState<any>(
+    "Proceed one to sheets"
+  );
   const [selectedComplaint, setSelectedComplaint] = useState<number | null>(
     null
   );
@@ -92,12 +113,6 @@ export default function AdminDash() {
           toast.error(data.message);
           return;
         }
-
-        setComplaintsForm({
-          name: "John Doe",
-          email: "john@example.com",
-          message: "The air conditioner is broken.",
-        });
 
         if (!Array.isArray(data)) {
           console.error("Invalid response format:", data);
@@ -163,7 +178,7 @@ export default function AdminDash() {
     socket.emit("join_room", { roomId: selectedChat, userId });
 
     socket.on("online", (data) => {
-      console.log(data);
+      // console.log(data);
     });
 
     // Ensure old listener is removed before adding a new one
@@ -261,7 +276,6 @@ export default function AdminDash() {
         }
 
         setIsSignedIn(true);
-        console.log("complaints ---", data.data.complaints);
 
         setComplaints(data.data.complaints);
       } catch (error: any) {
@@ -301,29 +315,169 @@ export default function AdminDash() {
     }
   };
 
-  const handleSubmitToSheets = async (e: any) => {
-    e.preventDefault();
+  const LoadPercent = (pushed: any, total: any) => {
+    if (!total) return 0;
+    const percentPushed = (pushed / total) * 100;
+    const percent = Math.min(percentPushed, 100); // Avoid going above 100%
+    setPushingPercent(percent);
+    return;
+  };
 
-    console.log("Running...");
+  const handleSingleSubmit = async (complaints: any, e: any) => {
+    e.preventDefault();
+    setIsLoading(true);
+    let pushed = 0;
+
+    const formData = {
+      Ticket: complaints.tickedID,
+      Name: complaints.fullName,
+      Address: complaints.address,
+      Phone: complaints.phoneNumber,
+      Meter: complaints.meterNumber,
+      Category: " ",
+      Nature: " ",
+      Source: " ",
+      Details: complaints.complaintDetails,
+    };
+
+    console.log(complaints);
+    console.log(formData);
 
     try {
-      const response = await fetch(
-        "https://script.google.com/macros/s/AKfycbzZ6wUeIzRaVV1Z1CpCvm41PA62a_r_ei_UnjfvivKBgrwu0aRXm-U3cBPn2V_zxLxMuw/exec",
+      const formPayload = new URLSearchParams();
+      Object.entries(formData).forEach(([key, value]) => {
+        formPayload.append(key, value);
+      });
+
+      console.log(formPayload);
+      const res = await fetch(
+        "https://script.google.com/macros/s/AKfycbwzD6IlaVZLKKZ1porJeeyl3d2q4mzWr2JvCZmGCliJ3Fb1M5PtnYF6yvv96wuRT139eA/exec",
         {
           method: "POST",
+          body: formPayload,
           headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
           },
-          body: JSON.stringify(complaintsForm),
         }
       );
 
-      const result = await response.json();
-      console.log("Form submitted:", result);
-      toast.success("Success!");
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      toast.error("Submission failed!");
+      if (!res.ok) throw new Error("Submission failed");
+
+      const data = await res.json();
+
+      pushed += 1;
+      LoadPercent(pushed, complaints.length);
+      toast.success("Complaints pushed to sheets");
+      setPushingPercent(0);
+    } catch (error: any) {
+      toast.error(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleMultipleSubmit = async (complaintsList: any[], e: any) => {
+    e.preventDefault();
+    setIsLoading(true);
+    let pushed = 0;
+
+    for (const complaint of complaintsList) {
+      const formData = {
+        Ticket: complaint.tickedID, // maybe generate unique IDs?
+        Name: complaint.fullName,
+        Address: complaint.address,
+        Phone: complaint.phoneNumber,
+        Meter: complaint.meterNumber,
+        Category: " ",
+        Nature: " ",
+        Source: " ",
+        Details: complaint.complaintDetails,
+      };
+
+      const formPayload = new URLSearchParams();
+      Object.entries(formData).forEach(([key, value]) => {
+        formPayload.append(key, value);
+      });
+
+      try {
+        const res = await fetch(
+          "https://script.google.com/macros/s/AKfycbwzD6IlaVZLKKZ1porJeeyl3d2q4mzWr2JvCZmGCliJ3Fb1M5PtnYF6yvv96wuRT139eA/exec",
+          {
+            method: "POST",
+            body: formPayload,
+            headers: {
+              "Content-Type": "application/x-www-form-urlencoded",
+            },
+          }
+        );
+
+        if (!res.ok)
+          throw new Error(`Submission failed for ${complaint.fullName}`);
+        // const data = await res.json();
+        // console.log(`✅ Submitted for ${complaint.fullName}`, data);
+        pushed += 1;
+        LoadPercent(pushed, complaintsList.length);
+        if (pushingPercent && !isLoading && complaintsList.length === pushed) {
+          toast.success("Complaints pushed to sheets");
+          setPushingPercent(0);
+        }
+      } catch (error: any) {
+        console.error(error);
+        toast.error(error.message);
+      }
+    }
+
+    setIsLoading(false);
+  };
+
+  const handleTodaySubmit = (complaintsList: any[], e: any) => {
+    e.preventDefault();
+    const today = format(new Date(), "yyyy-MM-dd");
+
+    console.log(today);
+
+    const todaysComplaints = complaintsList.filter((complaint) => {
+      const complaintDate = format(new Date(complaint.createdAt), "yyyy-MM-dd");
+      return complaintDate === today;
+    });
+
+    if (todaysComplaints.length === 0) {
+      toast.warn("No complaints today 🙂");
+      return;
+    }
+
+    handleMultipleSubmit(todaysComplaints, e);
+  };
+
+  const handleContextMenu = (e: any) => {
+    e.preventDefault(); // ⛔ Stops browser menu from appearing
+
+    toast.warn("Nothing to push 🤔");
+  };
+
+  const updateTicketID = async (complaintID: any) => {
+    console.log({ ticketID, complaintID });
+
+    try {
+      const res = await fetch(
+        "https://phed-complaints.onrender.com/api/v1/complaints/update",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ complaintID, tickedID: ticketID }),
+        }
+      );
+
+      const data = await res.json();
+      console.log(data);
+      if (res.ok) {
+        toast.success("Updated successfully");
+        setIsEditing(false);
+        setTicketID("");
+      }
+    } catch (error: any) {
+      toast.error(error.message);
     }
   };
 
@@ -572,7 +726,29 @@ export default function AdminDash() {
 
                         <div className="complaint-field">
                           <label>Ticket ID</label>
-                          <p>{"40320250099"}</p>
+                          <p onClick={() => setIsEditing(true)}>
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                value={ticketID}
+                                onChange={(e) => setTicketID(e.target.value)}
+                                style={{
+                                  height: "100%",
+                                  width: "100%",
+                                  padding: 5,
+                                  backgroundColor: "var(--background-color)",
+                                  border: "none",
+                                  outline: "none",
+                                  color: "var(--text-color)",
+                                  fontSize: "1rem",
+                                }}
+                              />
+                            ) : complaint.tickedID ? (
+                              complaint.tickedID
+                            ) : (
+                              "No ticket id yet click to add"
+                            )}
+                          </p>
                         </div>
 
                         <div className="complaint-field">
@@ -587,6 +763,83 @@ export default function AdminDash() {
                             </span>
                           </p>
                         </div>
+                        {activeTab === "complaints" &&
+                        !isEditing &&
+                        !isLoading ? (
+                          // <button
+                          //   className="ver-btn"
+                          //   onClick={() => handleSubmit(complaint)}
+                          //   onContextMenu={(e) => handleContextMenu(e)}
+                          // >
+                          //   Proceed all to sheets
+                          // </button>
+                          <select
+                            id="actionSelect"
+                            onChange={(e) => setSelectedPush(e.target.value)}
+                            className="ver-btn"
+                            value={selectedPush}
+                            // onClick={() => handleSubmit(complaint)}
+                            onKeyPress={(e) =>
+                              e.key === "Enter" &&
+                              selectedPush === "Proceed one to sheets"
+                                ? handleSingleSubmit(complaint, e)
+                                : selectedPush === "Proceed all to sheets"
+                                ? handleMultipleSubmit(complaints, e)
+                                : selectedPush === "Proceed today to sheets"
+                                ? handleTodaySubmit(complaints, e)
+                                : handleContextMenu(e)
+                            }
+                            onContextMenu={(e) => handleContextMenu(e)}
+                          >
+                            <option value="Proceed one to sheets">
+                              Proceed one to sheets
+                            </option>
+                            <option value="Proceed all to sheets">
+                              Proceed all to sheets
+                            </option>
+                            <option value="Proceed today to sheets">
+                              Proceed today to sheets
+                            </option>
+                          </select>
+                        ) : activeTab === "complaints" &&
+                          !isLoading &&
+                          isEditing ? (
+                          <div
+                            style={{
+                              display: "flex",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                              backgroundColor: "transparent",
+                              padding: 0,
+                            }}
+                            className="ver-btn"
+                          >
+                            <button
+                              className="ver-btn rise"
+                              onClick={() => updateTicketID(complaint.id)}
+                              style={{
+                                color: "white",
+                                borderRadius: 15,
+                                position: "relative",
+                              }}
+                            >
+                              Save
+                            </button>
+                            <button
+                              className="ver-btn rise"
+                              onClick={() => setIsEditing(false)}
+                              style={{
+                                color: "white",
+                                borderRadius: 15,
+                                position: "relative",
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          isLoading && <LoadingBar percent={pushingPercent} />
+                        )}
                       </>
                     ) : null;
                   })()}
@@ -600,11 +853,6 @@ export default function AdminDash() {
           </div>
         )}
       </div>
-      {activeTab === "complaints" && (
-        <button className="ver-btn" onChange={(e) => handleSubmitToSheets(e)}>
-          Proceed all to sheets
-        </button>
-      )}
     </div>
   );
 }

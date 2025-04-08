@@ -129,3 +129,42 @@ export const getComplaints: RequestHandler = async (
     return;
   }
 };
+
+export const updateTicketID = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { complaintID, tickedID } = req.body;
+
+    console.log({ complaintID, tickedID });
+
+    console.log(req.user);
+
+    if (!req.user) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+
+    if (!tickedID) {
+      res.status(400).json({ message: "Missing tickedID" });
+      return;
+    }
+
+    const updatedComplaint = await Complaint.findByIdAndUpdate(
+      complaintID,
+      { tickedID },
+      { new: true }
+    );
+
+    if (!updatedComplaint) {
+      res.status(404).json({ message: "Complaint not found" });
+      return;
+    }
+
+    res.status(200).json(updatedComplaint.tickedID);
+  } catch (error) {
+    console.error("Update error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};

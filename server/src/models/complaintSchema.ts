@@ -9,8 +9,9 @@ interface IComplaint extends Document {
   status: "Pending" | "In Progress" | "Resolved";
   createdAt: Date;
   updatedAt: Date;
-  assignedTo?: string; // Optional field for admin assignment
-  resolutionNotes?: string; // Optional field for resolution details
+  assignedTo?: string;
+  resolutionNotes?: string;
+  tickedID?: number;
 }
 
 const complaintSchema = new Schema<IComplaint>(
@@ -54,6 +55,10 @@ const complaintSchema = new Schema<IComplaint>(
     resolutionNotes: {
       type: String,
       default: "",
+    },
+    tickedID: {
+      type: Number,
+      default: null,
     },
   },
   {

@@ -741,7 +741,7 @@ h4 {
   display: inline-block;
   border: none;
   padding: 0.75rem 1.5rem;
-  border-radius: 4px;
+  border-radius: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -751,6 +751,35 @@ h4 {
   right: 0;
   margin: 10px;
   background-color: var(--phed-blue-dark);
+  color: var(--text-color);
+  outline: 1px solid var(--text-muted);
+}
+
+/* Styling the select dropdown */
+.ver-btn2 {
+  font-size: 0.8rem;
+  padding: 15px;
+  background-color: var(--phed-blue);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+  border-radius: 15px;
+  width: 200px;
+  appearance: none; /* Remove default dropdown appearance */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+/* Styling the options */
+.ver-btn option {
+  font-size: 0.8rem;
+  background-color: var(--border-color);
+  color: var(--text-color);
+  border-bottom: 1px solid var(--phed-gold-dark);
+}
+
+/* Hover effect on options */
+.ver-btn option:hover {
+  background-color: #f0f0f0;
 }
 
 /* username pop css */
@@ -865,7 +894,7 @@ h4 {
 
 /* Dark theme scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -874,11 +903,15 @@ h4 {
 
 ::-webkit-scrollbar-thumb {
   background: var(--phed-blue);
-  border-radius: 4px;
+  border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--phed-blue-dark);
+}
+
+.ver-btn .rise:hover {
+  scale: 1.1;
 }
 
 /* Responsive design */
