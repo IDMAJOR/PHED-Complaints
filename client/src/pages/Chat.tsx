@@ -5,7 +5,6 @@ import { io } from "socket.io-client";
 import UserNamePrompt from "../components/UserNamePrompt";
 import { ClipLoader } from "react-spinners";
 import { v4 as uuidv4 } from "uuid";
-import AutoAudioPlayer from "../components/AutoAudioPlayer";
 
 const socket = io("http://localhost:5040");
 
