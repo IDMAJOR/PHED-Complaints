@@ -6,7 +6,7 @@ import UserNamePrompt from "../components/UserNamePrompt";
 import { ClipLoader } from "react-spinners";
 import { v4 as uuidv4 } from "uuid";
 
-const socket = io("http://localhost:5040");
+const socket = io("https://phed-complaints.onrender.com");
 
 type Message = {
   id: number;
